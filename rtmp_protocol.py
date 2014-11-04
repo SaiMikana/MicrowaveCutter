@@ -401,11 +401,12 @@ class FlashSharedObject:
 class RtmpClient:
     """ Represents an RTMP client. """
 
-    def __init__(self, channel_id):
+    def __init__(self, channel_id, unique_id):
         """ Initialize a new RTMP client. """
         self.ip = 's04.volnorez.com'
         self.port = 1935
         self.channel_id = channel_id
+        self.unique_id = unique_id
         self.shared_objects = []
 
     def handshake(self):
@@ -460,7 +461,7 @@ class RtmpClient:
                 None,
                 {
                     'clientName': 'MobileApp',
-                    'id': 'LIVePLAyerI16Eeu4MX4AYpGZAGw00',
+                    'id': self.unique_id,
                     'version': '1.2',
                     'mode': '2',
                     'limit': 200,
