@@ -52,7 +52,7 @@ class SO(rtmp_protocol.FlashSharedObject):
             dline = dict(dline.items() + line.items())
         
         now = datetime.utcnow()
-        dline['date'] = now.strftime("%d/%m/%Y")
+        dline['date'] = now.strftime("%m/%d/%Y")
         dline['time'] = now.strftime("%H:%M:%S")
         print(str(dline).decode('unicode-escape'))
         entry = self.spr_client.InsertRow(dline, self.spreadsheet_key, 1)
@@ -61,7 +61,7 @@ class SO(rtmp_protocol.FlashSharedObject):
         print('viewers', viewers)
         now = datetime.utcnow()
         entry = self.spr_client.InsertRow({
-            'datetime': now.strftime("%d/%m/%Y %H:%M:%S"),
+            'datetime': now.strftime("%m/%d/%Y %H:%M:%S"),
             'viewers': str(viewers),
         }, self.spreadsheet_key, 2)
     
@@ -70,7 +70,7 @@ class SO(rtmp_protocol.FlashSharedObject):
         
         now = datetime.utcnow()
         entry = self.spr_client.InsertRow({
-            'datetime': now.strftime("%d/%m/%Y %H:%M:%S"),
+            'datetime': now.strftime("%m/%d/%Y %H:%M:%S"),
             'index': str(index),
             'nick': nick,
         }, self.spreadsheet_key, 3)
