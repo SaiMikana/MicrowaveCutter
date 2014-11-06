@@ -8,6 +8,7 @@ import ConfigParser
 import rtmp_protocol
 import gdata.spreadsheet.service
 
+from sets import Set
 from datetime import datetime
 
 
@@ -31,6 +32,8 @@ class SO(rtmp_protocol.FlashSharedObject):
         self.spr_client.password = password
         self.spr_client.source = 'Microwave Cutter'
         self.spr_client.ProgrammaticLogin()
+        
+        self.rj_list = Set()
 
     def on_message(self, key):
         if key[0] == u'SetLiveStatus':
@@ -46,14 +49,34 @@ class SO(rtmp_protocol.FlashSharedObject):
         print('broadcasters ' + str(broadcasters).decode('unicode-escape'))
         
         dline = {}
+        new_rj_list = Set()
+        
+        for bc in broadcasters:
+            if hasattr(bc, 'desc'):
+                new_rj_list.add(bc['desc'])
+        
+        now = datetime.utcnow()
+        cur_date = now.strftime("%m/%d/%Y")
+        cur_time = now.strftime("%H:%M:%S")
+        
+        if new_rj_list == self.rj_list:
+            print('No update in rotation list')
+        else:
+            rj_entry = {'rj' + str(i) : rj for i, rj in enumerate(new_rj_list)}
+            rj_entry['date'] = cur_date
+            rj_entry['time'] = cur_time
+            print(rj_entry)
+            entry = self.spr_client.InsertRow(rj_entry, self.spreadsheet_key, 4)
+        
+        self.rj_list = new_rj_list
+        
         for idx, bc in enumerate(broadcasters):
             whitelist = ['author', 'volume', 'mode', 'mediaName', 'id', 'desc']
             line = {i.lower()+str(idx):unicode(bc[i]) for i in bc if i in whitelist}
             dline = dict(dline.items() + line.items())
         
-        now = datetime.utcnow()
-        dline['date'] = now.strftime("%m/%d/%Y")
-        dline['time'] = now.strftime("%H:%M:%S")
+        dline['date'] = cur_date
+        dline['time'] = cur_time
         print(str(dline).decode('unicode-escape'))
         entry = self.spr_client.InsertRow(dline, self.spreadsheet_key, 1)
     
