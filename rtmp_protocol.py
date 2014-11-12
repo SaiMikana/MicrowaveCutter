@@ -398,12 +398,20 @@ class FlashSharedObject:
     def on_message(self, data):
         pass
 
+
+class RedirectServerError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return str(self.value)
+
+
 class RtmpClient:
     """ Represents an RTMP client. """
 
-    def __init__(self, channel_id, unique_id):
+    def __init__(self, ip, channel_id, unique_id):
         """ Initialize a new RTMP client. """
-        self.ip = 's04.volnorez.com'
+        self.ip = ip
         self.port = 1935
         self.channel_id = channel_id
         self.unique_id = unique_id
@@ -449,7 +457,7 @@ class RtmpClient:
                     ('app', 'live/%d' % self.channel_id),
                     ('flashVer', 'AND 15,0,0,183'),
                     ('swfUrl', 'app:/client/client.swf'),
-                    ('tcUrl', 'rtmp://s04.volnorez.com/live/%d' % self.channel_id),
+                    ('tcUrl', 'rtmp://%s/live/%d' % (self.ip, self.channel_id)),
                     ('fpad', False),
                     ('capabilities', 239),
                     ('audioCodecs', 3575),
@@ -582,8 +590,9 @@ class RtmpClient:
         if msg['msg'] == DataTypes.COMMAND:
             #print('command = ', msg['command'][0])
             
-            #if msg['command'][0] == u'SetLiveStatus':
-            #    self.update_broadcasters(msg['command'][3])
+            if msg['command'][0] == u'Redirect':
+                raise RedirectServerError(msg['command'][3])
+            
             
             return True
         
@@ -606,6 +615,8 @@ class RtmpClient:
             self.writer.flush()
             return True
         
+        #if msg['msg'] == DataTypes.USER_CONTROL and msg['event_type'] == 0x0b:
+        #    pass
         # {'msg': 4, 'event_type': 11, 'event_data': 'live'}
         
         return False

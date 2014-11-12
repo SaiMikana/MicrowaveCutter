@@ -14,7 +14,6 @@ from datetime import datetime
 
 password = None
 
-
 class SO(rtmp_protocol.FlashSharedObject):
     def __init__(self, config):
         rtmp_protocol.FlashSharedObject.__init__(self, 'live_shared')
@@ -105,16 +104,22 @@ def main():
     
     channel_id = config.getint('Core', 'Channel')
     unique_id = config.get('Core', 'UniqueId')
+    server = 's04.volnorez.com'
     
-    client = rtmp_protocol.RtmpClient(channel_id, unique_id)
-    client.connect()
-    
-    live_shared = SO(config)
-    client.shared_object_use(live_shared)
-    
-    client.call('Initialize', [None, 'normal', '', '1fde', '', '', '', 'Username'])
+    while True:
+        try:
+            client = rtmp_protocol.RtmpClient(server, channel_id, unique_id)
+            client.connect()
+            
+            live_shared = SO(config)
+            client.shared_object_use(live_shared)
+            
+            client.call('Initialize', [None, 'normal', '', '1fde', '', '', '', 'Username'])
 
-    client.handle_messages()
+            client.handle_messages()
+        except rtmp_protocol.RedirectServerError, e:
+            print('Redirect to %s, connecting to a new server...' % e.value)
+            server = e.value
 
 
 if __name__ == '__main__':
@@ -125,6 +130,5 @@ if __name__ == '__main__':
             print traceback.format_exc()
             print('Caught exception, restarting in 5 seconds')
             time.sleep(5)
-            pass
         else:
             break
